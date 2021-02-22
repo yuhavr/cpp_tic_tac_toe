@@ -14,7 +14,7 @@ void print_game_board(game_board_t &board);
 void init_game_board(game_board_t &board);
 void place_mark(game_board_t &board, size_t row, size_t column, char mark);
 pair<size_t, size_t> get_user_input(game_board_t &board);
-char check_for_victory(const game_board_t &board);
+char check_for_victory(const game_board_t &board, pair<size_t, size_t> mark_position, char mark);
 
 int main()
 {
@@ -30,12 +30,12 @@ int main()
         if (x_turn) mark = 'X';
         else mark = '0';
         place_mark(game_board, mark_position.first, mark_position.second, mark);
-        if (turn_counter > 3)
+        if (turn_counter > 2*board_size - 1)
         {
-
-            if (check_for_victory(game_board) == 'X' || check_for_victory(game_board) == '0')
+            if (check_for_victory(game_board, mark_position, mark) == 'X' || check_for_victory(game_board, mark_position, mark) == '0')
             {
                 print_game_board(game_board);
+                cout << mark << " wins!";
                 break;
             }
         }
@@ -93,22 +93,67 @@ void place_mark(game_board_t &board, size_t row, size_t column, char mark)
     board.at(row).at(column) = mark;
 }
 
-char check_for_victory(const game_board_t &board)
+char check_for_victory(const game_board_t &board, pair<size_t, size_t> mark_position, char mark)
 {
-    for (auto& row : board)   // check horizontal rows
+    char result;   //  'N' stands for "no winner" or "next move", whatever you like more
+
+    for (auto col_index = 0; col_index < board_size; ++col_index)   // check horizontal rows
     {
-        if (row[0] != ' ' && row[0] == row[1] && row[1] == row[2])
+        if (board[mark_position.first][col_index] != mark)
         {
-            cout << row[0] << " wins!";
-            return row[0];
+            result = 'N';
+            break;
+        }
+        else { result = mark; }
+    }
+
+    for (auto row_index = 0; row_index < board_size; ++row_index)   // check horizontal rows
+    {
+        if (board[row_index][mark_position.second] != mark)
+        {
+            result = 'N';
+            break;
+        }
+        else { result = mark; }
+    }
+
+    if (mark_position.first == mark_position.second)  //check main diagonal
+    {
+        for (auto row_index = 0; row_index < board_size; ++row_index)
+        {
+            for (auto col_index = 0; col_index < board_size; ++col_index)
+            {
+                if (row_index == col_index)
+                {
+                    if (board[row_index][col_index] != mark)
+                    {
+                        result = 'N';
+                        break;
+                    }
+                    else { result = mark; }
+                }
+            }
         }
     }
 
-    if ((board[0][0] == board[1][1] && board[1][1] == [2][2]) && (board[0][2] == board[1][1] && board[1][1] == [2][0]))  //check diagonals
+    if (mark_position.first + mark_position.second == board_size - 1)   // check anti-diagonal
     {
-            cout << board[0][0] << " wins!";
-            return row[0];
+        for (auto row_index = 0; row_index < board_size; ++row_index)
+        {
+            for (auto col_index = 0; col_index < board_size; ++col_index)
+            {
+                if (row_index + col_index == board_size - 1)
+                {
+                    if (board[row_index][col_index] != mark)
+                    {
+                        result = 'N';
+                        break;
+                    }
+                    else { result = mark; }
+                }
+            }
+        }
     }
 
-    return 'N';
+    return result;
 }
